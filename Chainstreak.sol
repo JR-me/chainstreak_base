@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.25;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -20,6 +20,7 @@ import "@openzeppelin/contracts/utils/Base64.sol";
  *   [LOW-2]  OZ Base64 used — battle-tested, no hand-rolled assembly
  *   [INFO-1] Removed redundant ownerOfToken mapping
  *   [v3]     Metallic on-chain SVG with per-tier gradients and readable text
+ *   [v4]     _svgHeader split into two functions to fix stack-too-deep on 0.8.25+
  */
 contract Chainstreak is ERC721, Ownable {
 
@@ -196,7 +197,7 @@ contract Chainstreak is ERC721, Ownable {
 
         // Split into parts to avoid stack-too-deep
         string memory part1 = _svgHeader(s);
-        string memory part2 = _svgRings(s);
+        string memory part2 = _svgRings();
         string memory part3 = _svgText(s, data, tokenId);
 
         return string(abi.encodePacked(part1, part2, part3, '</svg>'));
@@ -250,35 +251,45 @@ contract Chainstreak is ERC721, Ownable {
         }
     }
 
+    // Split into two functions to keep stack depth under the EVM limit.
+    // _svgHeader builds the opening tag + bg/ring/num gradients.
+    // _svgHeaderDefs2 builds the highlight gradients + background shapes.
+
     function _svgHeader(TierStyle memory s) internal pure returns (string memory) {
         return string(abi.encodePacked(
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">',
             '<defs>',
-              '<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">',
-                '<stop offset="0%" stop-color="',   s.bg0, '"/>',
-                '<stop offset="35%" stop-color="',  s.bg1, '"/>',
-                '<stop offset="68%" stop-color="',  s.bg2, '"/>',
-                '<stop offset="100%" stop-color="', s.bg3, '"/>',
-              '</linearGradient>',
-              '<linearGradient id="rg" x1="0" y1="0" x2="0" y2="1">',
-                '<stop offset="0%" stop-color="',   s.ring0, '"/>',
-                '<stop offset="50%" stop-color="',  s.ring1, '"/>',
-                '<stop offset="100%" stop-color="', s.ring2, '"/>',
-              '</linearGradient>',
-              '<linearGradient id="ng" x1="0" y1="0" x2="0" y2="1">',
-                '<stop offset="0%" stop-color="',   s.numTop, '"/>',
-                '<stop offset="100%" stop-color="', s.numBot, '"/>',
-              '</linearGradient>',
-              '<linearGradient id="sh" x1="0" y1="0" x2="1" y2="1">',
-                '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.5"/>',
-                '<stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>',
-                '<stop offset="100%" stop-color="#ffffff" stop-opacity="0.08"/>',
-              '</linearGradient>',
-              '<linearGradient id="sw" x1="0" y1="0" x2="1" y2="0">',
-                '<stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>',
-                '<stop offset="50%" stop-color="#ffffff" stop-opacity="0.3"/>',
-                '<stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>',
-              '</linearGradient>',
+            '<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">',
+            '<stop offset="0%" stop-color="',   s.bg0, '"/>',
+            '<stop offset="35%" stop-color="',  s.bg1, '"/>',
+            '<stop offset="68%" stop-color="',  s.bg2, '"/>',
+            '<stop offset="100%" stop-color="', s.bg3, '"/>',
+            '</linearGradient>',
+            '<linearGradient id="rg" x1="0" y1="0" x2="0" y2="1">',
+            '<stop offset="0%" stop-color="',   s.ring0, '"/>',
+            '<stop offset="50%" stop-color="',  s.ring1, '"/>',
+            '<stop offset="100%" stop-color="', s.ring2, '"/>',
+            '</linearGradient>',
+            '<linearGradient id="ng" x1="0" y1="0" x2="0" y2="1">',
+            '<stop offset="0%" stop-color="',   s.numTop, '"/>',
+            '<stop offset="100%" stop-color="', s.numBot, '"/>',
+            '</linearGradient>',
+            _svgHeaderDefs2()
+        ));
+    }
+
+    function _svgHeaderDefs2() internal pure returns (string memory) {
+        return string(abi.encodePacked(
+            '<linearGradient id="sh" x1="0" y1="0" x2="1" y2="1">',
+            '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.5"/>',
+            '<stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>',
+            '<stop offset="100%" stop-color="#ffffff" stop-opacity="0.08"/>',
+            '</linearGradient>',
+            '<linearGradient id="sw" x1="0" y1="0" x2="1" y2="0">',
+            '<stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>',
+            '<stop offset="50%" stop-color="#ffffff" stop-opacity="0.3"/>',
+            '<stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>',
+            '</linearGradient>',
             '</defs>',
             '<rect width="400" height="400" fill="url(#bg)"/>',
             '<ellipse cx="130" cy="95" rx="185" ry="135" fill="url(#sh)"/>',
@@ -288,11 +299,8 @@ contract Chainstreak is ERC721, Ownable {
         ));
     }
 
-    function _svgRings(TierStyle memory s) internal pure returns (string memory) {
-        // Suppress unused warning — s used for stroke colour derivation
-        // All ring colours come from the gradient defined in header
-        bytes memory unused = bytes(s.ring1);
-        unused;
+    // _svgRings no longer needs TierStyle — ring colours come from the #rg gradient.
+    function _svgRings() internal pure returns (string memory) {
         return string(abi.encodePacked(
             '<circle cx="200" cy="152" r="84"  fill="none" stroke="url(#rg)" stroke-width="2.5"/>',
             '<circle cx="200" cy="152" r="64"  fill="#ffffff" fill-opacity="0.15"/>',
