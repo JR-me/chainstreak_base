@@ -13,7 +13,7 @@
  *   Change GITHUB_REPO_NAME below — that's the only place you need to edit.
  */
 
-const GITHUB_REPO_NAME = "chainstreak"; // ← change if your repo name differs
+const GITHUB_REPO_NAME = "chainstreak_base"; // ← change if your repo name differs
 
 const isGithubPages = process.env.BUILD_TARGET === "github";
 const basePath      = isGithubPages ? `/${GITHUB_REPO_NAME}` : "";
