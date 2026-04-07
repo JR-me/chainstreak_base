@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.25;
 
-import "https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/v4.9.6/contracts/token/ERC721/ERC721.sol";
-import "https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/v4.9.6/contracts/access/Ownable.sol";
-import "https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/v4.9.6/contracts/utils/Base64.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title Chainstreak
@@ -12,29 +13,28 @@ import "https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/v4
  *         Any checkIn() call (once per UTC day) counts as daily activity.
  *
  * @dev Security audit v3:
- *   [CRIT-1] CEI pattern enforced - all state written before _mint (no reentrancy)
+ *   [CRIT-1] CEI pattern enforced — all state written before _mint (no reentrancy)
  *   [CRIT-2] tokenURI reverts on unminted tokenId via _requireOwned
  *   [MED-1]  approve() and setApprovalForAll() overridden to revert (soul-bound)
- *   [MED-2]  _mint used instead of _safeMint - no onERC721Received reentrancy surface
+ *   [MED-2]  _mint used instead of _safeMint — no onERC721Received reentrancy surface
  *   [LOW-1]  Removed unused variables
- *   [LOW-2]  OZ Base64 used - battle-tested, no hand-rolled assembly
+ *   [LOW-2]  OZ Base64 used — battle-tested, no hand-rolled assembly
  *   [INFO-1] Removed redundant ownerOfToken mapping
  *   [v3]     Metallic on-chain SVG with per-tier gradients and readable text
- *   [v4]     SVG helpers split into smaller functions to fix stack-too-deep
- *   [v5]     Pinned to OZ v4.9.6 via raw GitHub URL - compiles in Remix with
- *            0.8.20 + paris EVM + no viaIR required
+ *   [v4]     SVG helpers split into smaller functions to fix stack-too-deep on 0.8.25+
+ *   [v5]     Emergency pause via OZ Pausable — owner can halt checkIn() and unpause
  */
-contract Chainstreak is ERC721, Ownable {
+contract Chainstreak is ERC721, Ownable, Pausable {
 
     // --- Structs --------------------------------------------------------------
 
     struct StreakData {
         uint256 tokenId;
-        uint48  firstCheckIn;    // unix timestamp of first check-in (UTC day)
-        uint48  lastCheckIn;     // unix timestamp of most recent check-in (UTC day)
-        uint32  currentStreak;   // consecutive days active - resets on miss
-        uint32  highestStreak;   // all-time peak streak - never decreases
-        uint32  totalActiveDays; // lifetime active days
+        uint48  firstCheckIn;        // unix timestamp of first check-in (UTC day)
+        uint48  lastCheckIn;         // unix timestamp of most recent check-in (UTC day)
+        uint32  currentStreak;       // consecutive days active - resets on miss
+        uint32  highestStreak;       // all-time peak streak - never decreases
+        uint32  totalActiveDays;     // lifetime active days
     }
 
     // --- State ----------------------------------------------------------------
@@ -63,7 +63,25 @@ contract Chainstreak is ERC721, Ownable {
 
     // --- Constructor ----------------------------------------------------------
 
-    constructor() ERC721("Chainstreak", "CSTRK") Ownable() {}
+    constructor() ERC721("Chainstreak", "CSTRK") Ownable(msg.sender) {}
+
+    // --- Owner: Emergency Pause -----------------------------------------------
+
+    /**
+     * @notice Halt all check-ins immediately. Use if a critical bug is discovered.
+     * @dev    Only callable by the contract owner. Emits Paused(owner).
+     */
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @notice Resume check-ins after a pause.
+     * @dev    Only callable by the contract owner. Emits Unpaused(owner).
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+    }
 
     // --- External: Check-In --------------------------------------------------
 
@@ -71,8 +89,9 @@ contract Chainstreak is ERC721, Ownable {
      * @notice Call once per UTC day to record activity.
      *         First call mints your soul-bound NFT; subsequent calls update it.
      * @dev    Checks-Effects-Interactions strictly enforced.
+     *         Reverts when the contract is paused (emergency stop).
      */
-    function checkIn() external {
+    function checkIn() external whenNotPaused {
         address wallet = msg.sender;
         StreakData storage data = streakOf[wallet];
 
@@ -140,15 +159,14 @@ contract Chainstreak is ERC721, Ownable {
         return 0;
     }
 
-    // --- View: tokenURI — fully on-chain metallic SVG ------------------------
+    // --- View: tokenURI - fully on-chain metallic SVG ------------------------
 
     /**
      * @notice Returns base64-encoded JSON with embedded SVG. No IPFS dependency.
      * @dev    Reverts for unminted tokenIds via _requireOwned (ERC-721 compliant).
      */
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        require(_exists(tokenId), "ERC721: invalid token ID");
-        address wallet = ownerOf(tokenId);
+        address wallet = _requireOwned(tokenId);
         StreakData memory data = streakOf[wallet];
         uint8 tier = tierOf(wallet);
 
@@ -158,10 +176,10 @@ contract Chainstreak is ERC721, Ownable {
             '{"name":"Chainstreak #', _uint2str(tokenId), '",',
             '"description":"A dynamic soul-bound on-chain streak NFT. Tier based on all-time highest streak.",',
             '"attributes":[',
-              '{"trait_type":"Tier","value":"',              _tierName(tier),                 '"},',
-              '{"trait_type":"Highest Streak","value":',     _uint2str(data.highestStreak),   '},',
-              '{"trait_type":"Current Streak","value":',     _uint2str(data.currentStreak),   '},',
-              '{"trait_type":"Total Active Days","value":',  _uint2str(data.totalActiveDays), '}',
+              '{"trait_type":"Tier","value":"',              _tierName(tier),                   '"},',
+              '{"trait_type":"Highest Streak","value":',     _uint2str(data.highestStreak),     '},',
+              '{"trait_type":"Current Streak","value":',     _uint2str(data.currentStreak),     '},',
+              '{"trait_type":"Total Active Days","value":',  _uint2str(data.totalActiveDays),   '}',
             '],',
             '"image":"data:image/svg+xml;base64,', Base64.encode(bytes(svg)), '"}'
         ));

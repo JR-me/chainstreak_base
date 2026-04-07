@@ -82,8 +82,10 @@ export function useChainstreak() {
   const isMinted        = tokenId > 0n;
 
   // Has the wallet already checked in today (UTC)?
-  const todayUtc = Math.floor(Date.now() / 86_400_000) * 86_400;
-  const hasCheckedInToday = Number(lastCheckIn) >= todayUtc;
+  // Date.now() is ms → divide by ms-per-day → multiply by s-per-day = UTC midnight in seconds.
+  // Matches the uint48 unix timestamp (seconds) stored by the contract.
+  const todayUtcSeconds = Math.floor(Date.now() / 86_400_000) * 86_400;
+  const hasCheckedInToday = Number(lastCheckIn) >= todayUtcSeconds;
 
   const firstDate = firstCheckIn > 0
     ? new Date(Number(firstCheckIn) * 1000).toLocaleDateString("en-US", {

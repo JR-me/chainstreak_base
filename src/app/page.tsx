@@ -125,9 +125,20 @@ export default function Page() {
   const [showChains, setShowChains]   = useState(false);
   const [showWallets, setShowWallets] = useState(false);
   const [mounted, setMounted]         = useState(false);
+  // Locks the button label to "✓ Checked in!" for the full 3s celebration window,
+  // preventing hasCheckedInToday (set by refetchStreak) from overwriting it early.
+  const [celebrating, setCelebrating] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
-  useEffect(() => { if (isConfirmed) { setTimeout(resetWrite, 3000); } }, [isConfirmed, resetWrite]);
+  useEffect(() => {
+    if (isConfirmed) {
+      setCelebrating(true);
+      setTimeout(() => {
+        resetWrite();
+        setCelebrating(false);
+      }, 3000);
+    }
+  }, [isConfirmed, resetWrite]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -140,15 +151,15 @@ export default function Page() {
   const faucetUrl = FAUCET_URLS[chainId];
 
   const btnLabel = () => {
-    if (isTxPending)       return "Confirm in wallet…";
-    if (isConfirming)      return "Waiting for block…";
-    if (isConfirmed)       return "✓ Checked in!";
-    if (hasCheckedInToday) return "Come back tomorrow ↗";
-    if (!isMinted)         return "✦ Mint & Check In";
+    if (isTxPending)                      return "Confirm in wallet…";
+    if (isConfirming)                     return "Waiting for block…";
+    if (isConfirmed || celebrating)       return "✓ Checked in!";
+    if (hasCheckedInToday)                return "Come back tomorrow ↗";
+    if (!isMinted)                        return "✦ Mint & Check In";
     return "✦ Check In";
   };
 
-  const btnDisabled = hasCheckedInToday || isTxPending || isConfirming || isConfirmed;
+  const btnDisabled = (hasCheckedInToday && !celebrating) || isTxPending || isConfirming || isConfirmed || celebrating;
 
   if (!mounted) return null; // Prevent SSR hydration mismatch for wagmi
 
