@@ -1,35 +1,22 @@
 /** @type {import('next').NextConfig} */
 
-/**
- * HOW BUILDS WORK
- * ───────────────
- * Netlify:       npm run build         → serves from /
- * GitHub Pages:  npm run build:github  → serves from /chainstreak/
- *
- * basePath is read by Next.js at BUILD time from this file.
- * Do NOT try to pass it as a runtime env var — it won't work.
- *
- * If your GitHub repo is not named "chainstreak":
- *   Change GITHUB_REPO_NAME below — that's the only place you need to edit.
- */
+// ── GitHub Pages only ──────────────────────────────────────────────────────
+// Only used by `npm run build:github`. Change this to your repo name if it
+// isn't "chainstreak". Vercel and Netlify never use basePath, so leave it.
+const GITHUB_REPO_NAME = "chainstreak";
 
-const GITHUB_REPO_NAME = "chainstreak_base"; // ← change if your repo name differs
-
-const isGithubPages = process.env.BUILD_TARGET === "github";
-const basePath      = isGithubPages ? `/${GITHUB_REPO_NAME}` : "";
+const isGitHub = process.env.BUILD_TARGET === "github";
 
 const nextConfig = {
-  output: "export",       // Pure static HTML/JS — no server needed
-  basePath,
-  assetPrefix: basePath,
-  trailingSlash: true,    // Generates /page/index.html — required for static hosts
+  output: "export",       // Static HTML export for all three hosts
+  trailingSlash: true,    // Required: Netlify & GitHub Pages need index.html in each folder
   images: {
-    unoptimized: true,    // next/image optimisation requires a server
+    unoptimized: true,    // No server-side image optimisation in static mode
   },
-  webpack: (config) => {
-    config.resolve.fallback = { fs: false, net: false, tls: false };
-    return config;
-  },
+  ...(isGitHub && {
+    basePath: `/${GITHUB_REPO_NAME}`,
+    assetPrefix: `/${GITHUB_REPO_NAME}/`,
+  }),
 };
 
 module.exports = nextConfig;

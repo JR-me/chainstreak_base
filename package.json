@@ -1,27 +1,29 @@
 {
-  "name": "chainstreak-frontend",
+  "name": "chainstreak",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev":          "next dev",
+    "build":        "next build",
     "build:github": "cross-env BUILD_TARGET=github next build",
-    "start": "npx serve out",
-    "lint": "next lint"
+    "start":        "npx serve out -p 3000",
+    "lint":         "next lint"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.62.0",
-    "next": "^14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "viem": "^2.21.0",
-    "wagmi": "^2.14.0"
+    "@tanstack/react-query": "^5.0.0",
+    "next":                  "14.2.3",
+    "react":                 "^18",
+    "react-dom":             "^18",
+    "viem":                  "^2.0.0",
+    "wagmi":                 "^2.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0",
-    "typescript": "^5.6.0",
-    "cross-env": "^7.0.3"
+    "@types/node":    "^20",
+    "@types/react":   "^18",
+    "@types/react-dom": "^18",
+    "cross-env":      "^7.0.3",
+    "eslint":         "^8",
+    "eslint-config-next": "14.2.3",
+    "typescript":     "^5"
   }
 }
