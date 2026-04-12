@@ -21,6 +21,7 @@ const TIER_THEME: Record<Tier, {
   ptBg: string; pbColor: string; pll: string; plr: string;
   divider: string; footer: string;
   chipBg: string; chipBd: string; chipText: string;
+  heatActive: string; heatInactive: string;
 }> = {
   0: {
     appBg:"#f5f5f3", grid:"rgba(0,0,0,0.033)", orb:"rgba(175,175,170,0.18)",
@@ -39,6 +40,7 @@ const TIER_THEME: Record<Tier, {
     ptBg:"rgba(0,0,0,0.07)", pbColor:"#88887e", pll:"#b8b7b4", plr:"#78786e",
     divider:"rgba(0,0,0,0.07)", footer:"#b8b7b4",
     chipBg:"rgba(0,0,0,0.04)", chipBd:"rgba(0,0,0,0.08)", chipText:"#949490",
+    heatActive:"#444462", heatInactive:"rgba(136,136,153,0.18)",
   },
   1: {
     appBg:"#eef4ff", grid:"rgba(59,130,246,0.038)", orb:"rgba(96,152,252,0.24)",
@@ -57,6 +59,7 @@ const TIER_THEME: Record<Tier, {
     ptBg:"rgba(59,130,246,0.1)", pbColor:"#3b82f6", pll:"#78a8e0", plr:"#3b82f6",
     divider:"rgba(59,130,246,0.1)", footer:"#78a8d8",
     chipBg:"rgba(59,130,246,0.06)", chipBd:"rgba(59,130,246,0.12)", chipText:"#5890d8",
+    heatActive:"#1d4ed8", heatInactive:"rgba(59,130,246,0.12)",
   },
   2: {
     appBg:"#f2f2f5", grid:"rgba(108,108,138,0.038)", orb:"rgba(148,148,178,0.2)",
@@ -75,6 +78,7 @@ const TIER_THEME: Record<Tier, {
     ptBg:"rgba(108,108,138,0.1)", pbColor:"#8888b4", pll:"#8686a4", plr:"#7474a4",
     divider:"rgba(108,108,138,0.1)", footer:"#9494b4",
     chipBg:"rgba(108,108,138,0.06)", chipBd:"rgba(108,108,138,0.12)", chipText:"#7c7ca0",
+    heatActive:"#505080", heatInactive:"rgba(108,108,138,0.12)",
   },
   3: {
     appBg:"#fdf8ed", grid:"rgba(178,138,0,0.048)", orb:"rgba(234,182,38,0.24)",
@@ -93,6 +97,7 @@ const TIER_THEME: Record<Tier, {
     ptBg:"rgba(198,152,12,0.1)", pbColor:"#d29c0e", pll:"#c48a0e", plr:"#be7c0c",
     divider:"rgba(198,152,12,0.12)", footer:"#be9420",
     chipBg:"rgba(198,152,12,0.07)", chipBd:"rgba(198,152,12,0.14)", chipText:"#a66c0c",
+    heatActive:"#b86a00", heatInactive:"rgba(198,152,12,0.14)",
   },
 };
 
@@ -116,6 +121,7 @@ export default function Page() {
     tokenId, firstDate,
     currentStreak, highestStreak, totalActiveDays,
     tier, tierProgress,
+    consistency, totalSupply, activityHeatmap,
     isStreakLoading, isTxPending, isConfirming, isConfirmed,
     writeError, checkIn, resetWrite,
   } = useChainstreak();
@@ -314,6 +320,28 @@ export default function Page() {
         .stat-value { font-family: 'DM Serif Display', serif; font-size: 23px; line-height: 1; color: ${th.statVal}; transition: color 0.8s; }
         .stat-value.sm { font-size: 17px; color: ${th.statMuted}; }
 
+        /* ── Heatmap ── */
+        .heatmap-section { margin-top: 20px; }
+        .heatmap-header {
+          display: flex; justify-content: space-between; align-items: baseline;
+          margin-bottom: 10px;
+        }
+        .heatmap-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: ${th.statLbl}; }
+        .heatmap-pct { font-family: 'DM Serif Display', serif; font-size: 15px; color: ${th.statVal}; }
+        .heatmap-grid {
+          display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+        }
+        .heatmap-cell {
+          aspect-ratio: 1; border-radius: 3px;
+          transition: background 0.5s;
+        }
+        .heatmap-cell.on  { background: ${th.heatActive}; }
+        .heatmap-cell.off { background: ${th.heatInactive}; }
+        .heatmap-days {
+          display: flex; justify-content: space-between;
+          margin-top: 5px; font-size: 9px; color: ${th.statLbl}; letter-spacing: 0.06em;
+        }
+
         /* ── Button ── */
         .checkin-btn {
           width: 100%; padding: 17px; border-radius: 15px;
@@ -472,6 +500,7 @@ export default function Page() {
             <div className="stat-card"><p className="stat-label">Current streak</p><p className="stat-value">{isMinted ? `${currentStreak} days` : "—"}</p></div>
             <div className="stat-card"><p className="stat-label">Best streak</p><p className="stat-value">{isMinted ? `${highestStreak} days` : "—"}</p></div>
             <div className="stat-card"><p className="stat-label">Total active</p><p className="stat-value">{isMinted ? `${totalActiveDays} days` : "—"}</p></div>
+            <div className="stat-card"><p className="stat-label">Consistency</p><p className="stat-value">{isMinted ? `${consistency}%` : "—"}</p></div>
             <div className="stat-card"><p className="stat-label">First check-in</p><p className="stat-value sm">{firstDate ?? "—"}</p></div>
           </div>
         </div>
@@ -516,6 +545,29 @@ export default function Page() {
               </div>
             )}
 
+            {/* 28-day activity heatmap */}
+            {isMinted && (
+              <div className="heatmap-section">
+                <div className="heatmap-header">
+                  <span className="heatmap-label">Last 28 days</span>
+                  <span className="heatmap-pct">{consistency}% consistent</span>
+                </div>
+                <div className="heatmap-grid">
+                  {activityHeatmap.map((active, i) => (
+                    <div
+                      key={i}
+                      className={`heatmap-cell ${active ? "on" : "off"}`}
+                      title={`${i === 0 ? "Today" : `${i}d ago`}${active ? " ✓" : ""}`}
+                    />
+                  ))}
+                </div>
+                <div className="heatmap-days">
+                  <span>today</span>
+                  <span>27d ago</span>
+                </div>
+              </div>
+            )}
+
             {faucetUrl && (
               <p className="faucet-text">
                 Need testnet gas?{" "}
@@ -531,6 +583,7 @@ export default function Page() {
         <p className="cs-footer">
           Soul-bound ERC-721 · Fully on-chain SVG · No IPFS · EVM multi-chain<br />
           Tier based on all-time highest streak — never decreases
+          {totalSupply > 0 && <><br />{totalSupply.toLocaleString()} NFTs minted</>}
         </p>
       </main>
     </>
