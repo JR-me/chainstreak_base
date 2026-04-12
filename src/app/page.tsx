@@ -5,105 +5,103 @@ import { useConnect, useDisconnect, useSwitchChain, useChainId } from "wagmi";
 import { useChainstreak, TIER_COLOR, TIER_NAME, TIER_THRESHOLD, type Tier } from "@/hooks/useChainstreak";
 import { CHAIN_META, FAUCET_URLS } from "@/lib/wagmi";
 
-// ─── Tier config ──────────────────────────────────────────────────────────────
+// ─── Per-tier full theme ──────────────────────────────────────────────────────
+
+const TIER_THEME: Record<Tier, {
+  appBg: string; grid: string; orb: string;
+  tbBg: string; tbBd: string;
+  brand: string; eye: string; heroText: string; sub: string;
+  pillActiveBg: string; pillActiveBd: string; pillActiveText: string; pillGem: string;
+  pillInactiveBg: string; pillInactiveBd: string; pillInactiveText: string;
+  nftBg: string; nftBd: string; nftShadow: string; nftCorner: string;
+  ringOuter: string; ringInner: string; rsA: string; rsB: string; rsC: string;
+  numColor: string; lblColor: string; badgeColor: string; nsubColor: string;
+  statBg: string; statBd: string; statLbl: string; statVal: string; statMuted: string;
+  btnBg: string; btnBd: string; btnText: string;
+  ptBg: string; pbColor: string; pll: string; plr: string;
+  divider: string; footer: string;
+  chipBg: string; chipBd: string; chipText: string;
+}> = {
+  0: {
+    appBg:"#f5f5f3", grid:"rgba(0,0,0,0.033)", orb:"rgba(175,175,170,0.18)",
+    tbBg:"rgba(245,245,243,0.82)", tbBd:"rgba(0,0,0,0.07)",
+    brand:"#383836", eye:"#aaa9a6", heroText:"#1c1c1a", sub:"#b8b7b4",
+    pillActiveBg:"rgba(88,88,82,0.09)", pillActiveBd:"rgba(88,88,82,0.22)", pillActiveText:"#323230", pillGem:"#6e6e6a",
+    pillInactiveBg:"rgba(0,0,0,0.03)", pillInactiveBd:"rgba(0,0,0,0.07)", pillInactiveText:"#c0bfbc",
+    nftBg:"linear-gradient(148deg,#ececec 0%,#d8d8d4 22%,#c0c0bc 45%,#cececa 60%,#e4e4e2 80%,#f0f0ee 100%)",
+    nftBd:"rgba(145,145,140,0.3)", nftShadow:"0 20px 56px rgba(130,130,125,0.18),0 6px 20px rgba(130,130,125,0.13)",
+    nftCorner:"rgba(55,55,52,0.38)",
+    ringOuter:"rgba(75,75,72,0.12)", ringInner:"rgba(55,55,52,0.08)",
+    rsA:"rgba(55,55,52,0.55)", rsB:"rgba(100,100,96,0.27)", rsC:"rgba(130,130,126,0.13)",
+    numColor:"#262624", lblColor:"rgba(55,55,52,0.36)", badgeColor:"#262624", nsubColor:"rgba(55,55,52,0.3)",
+    statBg:"rgba(0,0,0,0.04)", statBd:"rgba(0,0,0,0.07)", statLbl:"#b8b7b4", statVal:"#1c1c1a", statMuted:"#868682",
+    btnBg:"rgba(78,78,74,0.07)", btnBd:"rgba(78,78,74,0.2)", btnText:"#282826",
+    ptBg:"rgba(0,0,0,0.07)", pbColor:"#88887e", pll:"#b8b7b4", plr:"#78786e",
+    divider:"rgba(0,0,0,0.07)", footer:"#b8b7b4",
+    chipBg:"rgba(0,0,0,0.04)", chipBd:"rgba(0,0,0,0.08)", chipText:"#949490",
+  },
+  1: {
+    appBg:"#eef4ff", grid:"rgba(59,130,246,0.038)", orb:"rgba(96,152,252,0.24)",
+    tbBg:"rgba(238,244,255,0.82)", tbBd:"rgba(59,130,246,0.1)",
+    brand:"#18449a", eye:"#6898dc", heroText:"#0c285a", sub:"#78a8d8",
+    pillActiveBg:"rgba(59,130,246,0.1)", pillActiveBd:"rgba(59,130,246,0.28)", pillActiveText:"#18449a", pillGem:"#3b82f6",
+    pillInactiveBg:"rgba(59,130,246,0.03)", pillInactiveBd:"rgba(59,130,246,0.08)", pillInactiveText:"#96bce8",
+    nftBg:"linear-gradient(148deg,#c8dcfc 0%,#68a8f8 22%,#2558e0 45%,#4488f4 60%,#96c4fc 80%,#c0d8fe 100%)",
+    nftBd:"rgba(59,130,246,0.4)", nftShadow:"0 20px 64px rgba(59,130,246,0.28),0 6px 24px rgba(59,130,246,0.2)",
+    nftCorner:"rgba(255,255,255,0.58)",
+    ringOuter:"rgba(255,255,255,0.18)", ringInner:"rgba(255,255,255,0.1)",
+    rsA:"rgba(255,255,255,0.72)", rsB:"rgba(172,210,255,0.38)", rsC:"rgba(112,168,252,0.18)",
+    numColor:"#fff", lblColor:"rgba(255,255,255,0.46)", badgeColor:"#e4eeff", nsubColor:"rgba(255,255,255,0.4)",
+    statBg:"rgba(59,130,246,0.06)", statBd:"rgba(59,130,246,0.1)", statLbl:"#78a8e0", statVal:"#0c285a", statMuted:"#5888c0",
+    btnBg:"rgba(59,130,246,0.08)", btnBd:"rgba(59,130,246,0.24)", btnText:"#18449a",
+    ptBg:"rgba(59,130,246,0.1)", pbColor:"#3b82f6", pll:"#78a8e0", plr:"#3b82f6",
+    divider:"rgba(59,130,246,0.1)", footer:"#78a8d8",
+    chipBg:"rgba(59,130,246,0.06)", chipBd:"rgba(59,130,246,0.12)", chipText:"#5890d8",
+  },
+  2: {
+    appBg:"#f2f2f5", grid:"rgba(108,108,138,0.038)", orb:"rgba(148,148,178,0.2)",
+    tbBg:"rgba(242,242,245,0.82)", tbBd:"rgba(108,108,138,0.1)",
+    brand:"#2c2c48", eye:"#7c7ca0", heroText:"#181828", sub:"#8686a4",
+    pillActiveBg:"rgba(108,108,158,0.1)", pillActiveBd:"rgba(108,108,158,0.26)", pillActiveText:"#2c2c48", pillGem:"#8888b4",
+    pillInactiveBg:"rgba(108,108,138,0.03)", pillInactiveBd:"rgba(108,108,138,0.07)", pillInactiveText:"#a4a4c4",
+    nftBg:"linear-gradient(148deg,#e4e4ec 0%,#b8b8cc 22%,#8080a4 45%,#9898b8 60%,#d0d0e0 80%,#e8e8f0 100%)",
+    nftBd:"rgba(128,128,168,0.35)", nftShadow:"0 20px 60px rgba(98,98,148,0.22),0 6px 22px rgba(98,98,148,0.16)",
+    nftCorner:"rgba(255,255,255,0.58)",
+    ringOuter:"rgba(255,255,255,0.18)", ringInner:"rgba(205,205,228,0.12)",
+    rsA:"rgba(255,255,255,0.7)", rsB:"rgba(198,198,228,0.36)", rsC:"rgba(158,158,198,0.18)",
+    numColor:"#fff", lblColor:"rgba(255,255,255,0.44)", badgeColor:"#ececf4", nsubColor:"rgba(255,255,255,0.36)",
+    statBg:"rgba(108,108,138,0.06)", statBd:"rgba(108,108,138,0.1)", statLbl:"#8686a4", statVal:"#181828", statMuted:"#686884",
+    btnBg:"rgba(108,108,158,0.07)", btnBd:"rgba(108,108,158,0.22)", btnText:"#2c2c48",
+    ptBg:"rgba(108,108,138,0.1)", pbColor:"#8888b4", pll:"#8686a4", plr:"#7474a4",
+    divider:"rgba(108,108,138,0.1)", footer:"#9494b4",
+    chipBg:"rgba(108,108,138,0.06)", chipBd:"rgba(108,108,138,0.12)", chipText:"#7c7ca0",
+  },
+  3: {
+    appBg:"#fdf8ed", grid:"rgba(178,138,0,0.048)", orb:"rgba(234,182,38,0.24)",
+    tbBg:"rgba(253,248,237,0.82)", tbBd:"rgba(198,152,12,0.12)",
+    brand:"#664200", eye:"#b47e0c", heroText:"#382400", sub:"#be8c0e",
+    pillActiveBg:"rgba(198,152,12,0.1)", pillActiveBd:"rgba(198,152,12,0.3)", pillActiveText:"#664200", pillGem:"#d29c0e",
+    pillInactiveBg:"rgba(198,152,12,0.03)", pillInactiveBd:"rgba(198,152,12,0.08)", pillInactiveText:"#c49c3e",
+    nftBg:"linear-gradient(148deg,#fdeea0 0%,#f4c030 22%,#c47400 45%,#e49c0c 60%,#fce460 80%,#fef4b0 100%)",
+    nftBd:"rgba(208,162,12,0.46)", nftShadow:"0 20px 68px rgba(208,162,12,0.3),0 6px 26px rgba(208,162,12,0.22)",
+    nftCorner:"rgba(56,36,0,0.46)",
+    ringOuter:"rgba(255,255,255,0.22)", ringInner:"rgba(255,230,96,0.14)",
+    rsA:"rgba(255,255,255,0.78)", rsB:"rgba(254,212,64,0.44)", rsC:"rgba(224,162,22,0.2)",
+    numColor:"#2a1800", lblColor:"rgba(56,36,0,0.4)", badgeColor:"#261600", nsubColor:"rgba(56,36,0,0.3)",
+    statBg:"rgba(198,152,12,0.07)", statBd:"rgba(198,152,12,0.12)", statLbl:"#c48a0e", statVal:"#382400", statMuted:"#8e5c0c",
+    btnBg:"rgba(198,152,12,0.09)", btnBd:"rgba(198,152,12,0.28)", btnText:"#664200",
+    ptBg:"rgba(198,152,12,0.1)", pbColor:"#d29c0e", pll:"#c48a0e", plr:"#be7c0c",
+    divider:"rgba(198,152,12,0.12)", footer:"#be9420",
+    chipBg:"rgba(198,152,12,0.07)", chipBd:"rgba(198,152,12,0.14)", chipText:"#a66c0c",
+  },
+};
+
 const TIERS: { id: Tier; label: string; range: string }[] = [
-  { id: 0, label: "WHITE",  range: "0 – 9 days"   },
-  { id: 1, label: "BLUE",   range: "10 – 49 days"  },
-  { id: 2, label: "SILVER", range: "50 – 99 days"  },
-  { id: 3, label: "GOLD",   range: "100+ days"     },
+  { id: 0, label: "White",  range: "0–9 d"   },
+  { id: 1, label: "Blue",   range: "10–49 d"  },
+  { id: 2, label: "Silver", range: "50–99 d"  },
+  { id: 3, label: "Gold",   range: "100+ d"   },
 ];
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function NftCard({
-  isMinted, tier, tierColor,
-  highestStreak, currentStreak, totalActiveDays, tokenId,
-}: {
-  isMinted: boolean; tier: Tier; tierColor: string;
-  highestStreak: number; currentStreak: number;
-  totalActiveDays: number; tokenId: bigint;
-}) {
-  const c = isMinted ? tierColor : "#222";
-  return (
-    <div style={{
-      background: "#0e0e0e",
-      border: `1px solid ${isMinted ? tierColor + "3a" : "#1c1c1c"}`,
-      borderRadius: 20, padding: "2rem",
-      display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center", gap: "1rem",
-      aspectRatio: "1", position: "relative", overflow: "hidden",
-      transition: "border-color .6s",
-    }}>
-      <div style={{
-        position: "absolute", inset: 0,
-        background: `radial-gradient(circle at 50% 38%, ${isMinted ? tierColor : "#000"}18 0%, transparent 65%)`,
-        transition: "background .6s", pointerEvents: "none",
-      }} />
-
-      <p style={{
-        fontFamily: "'Space Mono',monospace", fontSize: 9, letterSpacing: 3,
-        color: isMinted ? tierColor + "99" : "#2a2a2a", textTransform: "uppercase",
-        transition: "color .6s",
-      }}>
-        {isMinted ? `Chainstreak · #${tokenId}` : "Chainstreak NFT"}
-      </p>
-
-      <div style={{
-        width: 124, height: 124, borderRadius: "50%",
-        border: `2px solid ${c}`,
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        position: "relative", transition: "border-color .6s",
-      }}>
-        {isMinted && (
-          <div style={{
-            position: "absolute", inset: -10, borderRadius: "50%",
-            border: `1px solid ${tierColor}28`,
-            animation: "pulse 2.4s ease-in-out infinite",
-          }} />
-        )}
-        <span style={{
-          fontFamily: "'Syne',sans-serif", fontSize: 42, fontWeight: 800,
-          color: c, lineHeight: 1, transition: "color .6s",
-        }}>{highestStreak}</span>
-        <span style={{
-          fontFamily: "'Space Mono',monospace", fontSize: 7,
-          letterSpacing: 2, color: isMinted ? tierColor + "77" : "#1e1e1e",
-          transition: "color .6s",
-        }}>BEST STREAK</span>
-      </div>
-
-      <p style={{
-        fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 800,
-        letterSpacing: 6, color: c, transition: "color .6s",
-      }}>{TIER_NAME[tier]}</p>
-
-      {isMinted && (
-        <p style={{
-          fontFamily: "'Space Mono',monospace", fontSize: 9,
-          color: "#4a4a4a", textAlign: "center",
-        }}>
-          Current {currentStreak}d · Total {totalActiveDays}d
-        </p>
-      )}
-    </div>
-  );
-}
-
-function Stat({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <div style={{
-      background: "#0a0a0a", border: "1px solid #181818",
-      borderRadius: 12, padding: "0.9rem 1rem",
-    }}>
-      <p style={{
-        fontFamily: "'Space Mono',monospace", fontSize: 8,
-        letterSpacing: 2, color: "#383838", textTransform: "uppercase", marginBottom: 8,
-      }}>{label}</p>
-      <p style={{ fontFamily: "'Syne',sans-serif", fontSize: 19, fontWeight: 700, color }}>{value}</p>
-    </div>
-  );
-}
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function Page() {
@@ -117,7 +115,7 @@ export default function Page() {
     isMinted, hasCheckedInToday,
     tokenId, firstDate,
     currentStreak, highestStreak, totalActiveDays,
-    tier, tierColor, tierProgress,
+    tier, tierProgress,
     isStreakLoading, isTxPending, isConfirming, isConfirmed,
     writeError, checkIn, resetWrite,
   } = useChainstreak();
@@ -125,143 +123,288 @@ export default function Page() {
   const [showChains, setShowChains]   = useState(false);
   const [showWallets, setShowWallets] = useState(false);
   const [mounted, setMounted]         = useState(false);
-  // Locks the button label to "✓ Checked in!" for the full 3s celebration window,
-  // preventing hasCheckedInToday (set by refetchStreak) from overwriting it early.
   const [celebrating, setCelebrating] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
     if (isConfirmed) {
       setCelebrating(true);
-      setTimeout(() => {
-        resetWrite();
-        setCelebrating(false);
-      }, 3000);
+      setTimeout(() => { resetWrite(); setCelebrating(false); }, 3000);
     }
   }, [isConfirmed, resetWrite]);
-
-  // Close dropdowns on outside click
   useEffect(() => {
-    const handler = () => { setShowChains(false); setShowWallets(false); };
-    document.addEventListener("click", handler);
-    return () => document.removeEventListener("click", handler);
+    const h = () => { setShowChains(false); setShowWallets(false); };
+    document.addEventListener("click", h);
+    return () => document.removeEventListener("click", h);
   }, []);
 
+  const th = TIER_THEME[tier];
   const chainMeta = CHAIN_META[chainId];
   const faucetUrl = FAUCET_URLS[chainId];
 
   const btnLabel = () => {
-    if (isTxPending)                      return "Confirm in wallet…";
-    if (isConfirming)                     return "Waiting for block…";
-    if (isConfirmed || celebrating)       return "✓ Checked in!";
-    if (hasCheckedInToday)                return "Come back tomorrow ↗";
-    if (!isMinted)                        return "✦ Mint & Check In";
-    return "✦ Check In";
+    if (isTxPending)                return "Confirm in wallet…";
+    if (isConfirming)               return "Waiting for block…";
+    if (isConfirmed || celebrating) return "✓ Checked in — see you tomorrow";
+    if (hasCheckedInToday)          return "Come back tomorrow";
+    if (!isMinted)                  return "✦ Mint & check in";
+    return "✦ Check in today";
   };
-
   const btnDisabled = (hasCheckedInToday && !celebrating) || isTxPending || isConfirming || isConfirmed || celebrating;
 
-  if (!mounted) return null; // Prevent SSR hydration mismatch for wagmi
+  if (!mounted) return null;
+
+  // Apply theme to html/body for full-bleed background
+  if (typeof document !== "undefined") {
+    document.body.style.background = th.appBg;
+    document.body.style.transition = "background 0.8s";
+  }
+
+  const NEXT_TIER_NAME = ["Blue","Silver","Gold","MAX"][tier] as string;
 
   return (
     <>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { background: #080808; }
-        body { background: #080808; color: #bbb; font-family: 'Space Mono', monospace; min-height: 100vh; }
+        html { background: ${th.appBg}; transition: background 0.8s; }
+        body { font-family: 'DM Mono', monospace; min-height: 100vh; }
         button { cursor: pointer; font-family: inherit; }
-        @keyframes pulse { 0%,100%{transform:scale(1);opacity:.18} 50%{transform:scale(1.06);opacity:.4} }
-        @keyframes fadein { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-        .fadein { animation: fadein 0.35s ease forwards; }
-        .dropdown { animation: fadein 0.15s ease forwards; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #1e1e1e; border-radius: 2px; }
+
+        .bg-grid {
+          position: fixed; inset: 0; pointer-events: none; z-index: 0;
+          background-image: linear-gradient(${th.grid} 1px, transparent 1px),
+                            linear-gradient(90deg, ${th.grid} 1px, transparent 1px);
+          background-size: 44px 44px;
+          transition: background-image 0.8s;
+        }
+        .bg-orb {
+          position: fixed; width: 700px; height: 500px; border-radius: 50%;
+          top: -140px; left: 50%; transform: translateX(-50%);
+          pointer-events: none; z-index: 0;
+          background: radial-gradient(ellipse at 50% 0%, ${th.orb} 0%, transparent 62%);
+          transition: background 0.9s;
+        }
+
+        /* ── Topbar ── */
+        .topbar {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 28px; height: 54px;
+          background: ${th.tbBg}; border-bottom: 1px solid ${th.tbBd};
+          backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+          transition: background 0.8s, border-color 0.8s;
+        }
+        .brand {
+          font-family: 'DM Serif Display', serif; font-size: 18px;
+          letter-spacing: 0.02em; font-style: italic;
+          color: ${th.brand}; transition: color 0.7s;
+        }
+        .chip {
+          border-radius: 22px; padding: 5px 14px; font-size: 11px;
+          letter-spacing: 0.04em; cursor: pointer; font-family: 'DM Mono', monospace;
+          background: ${th.chipBg}; border: 1px solid ${th.chipBd}; color: ${th.chipText};
+          transition: all 0.6s;
+        }
+
+        /* ── Main ── */
+        .main { position: relative; z-index: 5; max-width: 700px; margin: 0 auto; padding: 72px 24px 64px; }
+
+        /* ── Hero ── */
+        .hero { text-align: center; padding: 48px 0 36px; }
+        .hero-eyebrow {
+          font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+          margin-bottom: 18px; color: ${th.eye}; transition: color 0.7s;
+        }
+        .hero-title {
+          font-family: 'DM Serif Display', serif;
+          font-size: clamp(2.8rem, 8vw, 4.6rem);
+          line-height: 0.95; letter-spacing: -0.02em;
+          color: ${th.heroText}; transition: color 0.8s; margin-bottom: 14px;
+        }
+        .hero-title em { font-style: italic; opacity: 0.38; }
+        .hero-sub { font-size: 11px; letter-spacing: 0.14em; color: ${th.sub}; transition: color 0.7s; }
+
+        /* ── Tier pills ── */
+        .tier-row { display: flex; gap: 7px; margin: 0 0 30px; justify-content: center; flex-wrap: wrap; }
+        .tier-pill {
+          display: flex; align-items: center; gap: 8px;
+          border-radius: 24px; padding: 8px 15px 8px 11px;
+          font-size: 11px; letter-spacing: 0.08em; cursor: default;
+          border: 1px solid; transition: all 0.35s; user-select: none;
+        }
+        .tier-pill.active {
+          background: ${th.pillActiveBg}; border-color: ${th.pillActiveBd}; color: ${th.pillActiveText};
+        }
+        .tier-pill.inactive {
+          background: ${th.pillInactiveBg}; border-color: ${th.pillInactiveBd}; color: ${th.pillInactiveText};
+        }
+        .tier-gem { width: 7px; height: 7px; border-radius: 2px; transform: rotate(45deg); flex-shrink: 0; }
+
+        /* ── Layout ── */
+        .center-panel { display: grid; grid-template-columns: 1fr 210px; gap: 18px; margin-bottom: 18px; align-items: start; }
+
+        /* ── NFT Card ── */
+        .nft-frame {
+          border-radius: 22px; aspect-ratio: 1;
+          display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11px;
+          position: relative; overflow: hidden;
+          background: ${th.nftBg}; border: 1px solid ${th.nftBd}; box-shadow: ${th.nftShadow};
+          transition: background 0.8s, border 0.8s, box-shadow 0.8s;
+        }
+        .nft-grain {
+          position: absolute; inset: 0; border-radius: 22px; pointer-events: none; z-index: 2;
+          opacity: 0.22;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+          background-size: 180px;
+        }
+        .nft-sheen {
+          position: absolute; inset: 0; border-radius: 22px; pointer-events: none; z-index: 3;
+          background: linear-gradient(135deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.05) 38%, rgba(255,255,255,0.0) 50%, rgba(255,255,255,0.14) 65%, rgba(255,255,255,0.04) 100%);
+          mix-blend-mode: overlay;
+        }
+        .nft-sheen2 {
+          position: absolute; inset: 0; border-radius: 22px; pointer-events: none; z-index: 3;
+          background: linear-gradient(225deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.0) 40%, rgba(0,0,0,0.06) 100%);
+          mix-blend-mode: overlay;
+        }
+        .nft-corner {
+          position: absolute; font-size: 10px; letter-spacing: 0.1em;
+          font-family: 'DM Mono', monospace; z-index: 5; color: ${th.nftCorner}; transition: color 0.6s;
+        }
+        .nft-corner.tl { top: 15px; left: 17px; }
+        .nft-corner.tr { top: 15px; right: 17px; }
+        .nft-corner.br { bottom: 15px; right: 17px; }
+
+        /* ── Ring ── */
+        .orbit-rings { position: relative; width: 145px; height: 145px; display: flex; align-items: center; justify-content: center; z-index: 5; }
+        .ring { position: absolute; border-radius: 50%; border: 1px solid transparent; transition: border-color 0.8s; }
+        .ring-outer { width: 145px; height: 145px; border-color: ${th.ringOuter}; }
+        .ring-inner { width: 94px;  height: 94px;  border-color: ${th.ringInner}; }
+        .ring-spin {
+          position: absolute; width: 122px; height: 122px; border-radius: 50%;
+          border: 1.5px solid transparent; border-top-color: transparent;
+          border-right-color: ${th.rsA}; border-bottom-color: ${th.rsB}; border-left-color: ${th.rsC};
+          animation: spin 5.5s linear infinite;
+          transition: border-right-color 0.8s, border-bottom-color 0.8s, border-left-color 0.8s;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .streak-center { display: flex; flex-direction: column; align-items: center; z-index: 6; }
+        .streak-number {
+          font-family: 'DM Serif Display', serif; font-size: 56px; line-height: 1;
+          color: ${th.numColor}; transition: color 0.8s;
+        }
+        .streak-label {
+          font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase;
+          margin-top: 3px; color: ${th.lblColor}; transition: color 0.8s;
+        }
+        .tier-name-badge {
+          font-family: 'DM Serif Display', serif; font-size: 16px; font-style: italic;
+          letter-spacing: 0.06em; z-index: 5; color: ${th.badgeColor}; transition: color 0.8s;
+        }
+        .nft-sub { font-size: 9px; letter-spacing: 0.1em; z-index: 5; color: ${th.nsubColor}; transition: color 0.8s; }
+
+        /* ── Stats ── */
+        .stats-col { display: flex; flex-direction: column; gap: 9px; }
+        .stat-card {
+          border-radius: 15px; padding: 14px 16px;
+          background: ${th.statBg}; border: 1px solid ${th.statBd};
+          transition: background 0.7s, border 0.7s;
+        }
+        .stat-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; color: ${th.statLbl}; transition: color 0.7s; }
+        .stat-value { font-family: 'DM Serif Display', serif; font-size: 23px; line-height: 1; color: ${th.statVal}; transition: color 0.8s; }
+        .stat-value.sm { font-size: 17px; color: ${th.statMuted}; }
+
+        /* ── Button ── */
+        .checkin-btn {
+          width: 100%; padding: 17px; border-radius: 15px;
+          font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+          transition: all 0.35s; border: 1px solid;
+        }
+        .checkin-btn.ready {
+          background: ${th.btnBg}; border-color: ${th.btnBd}; color: ${th.btnText};
+        }
+        .checkin-btn.ready:hover { transform: translateY(-1px); }
+        .checkin-btn.off {
+          background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); color: rgba(0,0,0,0.22); cursor: not-allowed;
+        }
+
+        /* ── Progress ── */
+        .prog-meta { display: flex; justify-content: space-between; margin-bottom: 9px; font-size: 10px; letter-spacing: 0.1em; }
+        .prog-track { height: 2px; border-radius: 2px; overflow: hidden; background: ${th.ptBg}; transition: background 0.7s; }
+        .prog-bar { height: 100%; border-radius: 2px; background: ${th.pbColor}; transition: width 1s cubic-bezier(0.16,1,0.3,1), background 0.8s; }
+
+        /* ── Misc ── */
+        .cs-divider { border: none; border-top: 1px solid ${th.divider}; margin: 32px 0 18px; transition: border-color 0.7s; }
+        .cs-footer { text-align: center; font-size: 10px; letter-spacing: 0.12em; line-height: 2.2; color: ${th.footer}; transition: color 0.7s; }
+        .dropdown {
+          position: absolute; right: 0; top: calc(100% + 6px);
+          background: ${th.appBg}; border: 1px solid ${th.tbBd};
+          border-radius: 12px; padding: 6px; min-width: 180px; z-index: 200;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+          animation: fadein 0.15s ease forwards;
+        }
+        .dropdown button {
+          display: block; width: 100%; text-align: left;
+          background: transparent; border: none; padding: 8px 10px; border-radius: 7px;
+          font-size: 11px; letter-spacing: 0.04em; color: ${th.chipText};
+          font-family: 'DM Mono', monospace; transition: background 0.15s;
+        }
+        .dropdown button:hover { background: ${th.statBg}; }
+        .error-text { margin-top: 8px; font-size: 9px; color: #c0392b; text-align: center; letter-spacing: 0.05em; }
+        .success-text { margin-top: 8px; font-size: 9px; color: #27ae60; text-align: center; letter-spacing: 0.05em; }
+        .faucet-text { margin-top: 12px; text-align: center; font-size: 10px; color: ${th.footer}; }
+        .faucet-text a { color: ${th.sub}; text-decoration: underline; }
+        .no-contract {
+          width: 100%; padding: 16px; text-align: center;
+          background: #fff8f0; border: 1px solid #ff980033; border-radius: 14px;
+        }
+        .no-contract p { font-size: 10px; letter-spacing: 0.06em; }
+
+        @keyframes fadein { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: translateY(0); } }
+
         @media (max-width: 560px) {
-          .grid-2 { grid-template-columns: 1fr !important; }
-          .tiers-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .center-panel { grid-template-columns: 1fr; }
+          .stats-col { flex-direction: row; flex-wrap: wrap; }
+          .stats-col .stat-card { flex: 1 1 calc(50% - 5px); }
+          .tier-row { gap: 5px; }
+          .topbar { padding: 0 16px; }
+          .main { padding: 68px 16px 48px; }
         }
       `}</style>
 
-      {/* ── Header ── */}
-      <header style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        background: "#08080890", backdropFilter: "blur(14px)",
-        borderBottom: "1px solid #141414",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 1.25rem", height: 54,
-      }}>
-        <span style={{
-          fontFamily: "'Syne',sans-serif", fontWeight: 800,
-          fontSize: 14, letterSpacing: 4, color: tierColor,
-          transition: "color .6s",
-        }}>CHAINSTREAK</span>
+      <div className="bg-grid" />
+      <div className="bg-orb" />
 
+      {/* ── Topbar ── */}
+      <header className="topbar">
+        <span className="brand">Chainstreak</span>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }} onClick={e => e.stopPropagation()}>
-          {/* Chain switcher */}
           {isConnected && (
             <div style={{ position: "relative" }}>
-              <button
-                onClick={() => { setShowChains(v => !v); setShowWallets(false); }}
-                style={{
-                  background: "#0e0e0e", border: "1px solid #1e1e1e",
-                  borderRadius: 8, color: "#555",
-                  fontSize: 9, padding: "5px 10px", letterSpacing: 1,
-                }}
-              >
+              <button className="chip" onClick={() => { setShowChains(v => !v); setShowWallets(false); }}>
                 {chainMeta ? `${chainMeta.name}${chainMeta.testnet ? " ·test" : ""}` : `Chain ${chainId}`}
               </button>
               {showChains && (
-                <div className="dropdown" style={{
-                  position: "absolute", right: 0, top: "calc(100% + 6px)",
-                  background: "#0e0e0e", border: "1px solid #1e1e1e",
-                  borderRadius: 10, padding: 6, minWidth: 170, zIndex: 200,
-                }}>
+                <div className="dropdown">
                   {chains.map(c => (
-                    <button key={c.id}
-                      onClick={() => { switchChain({ chainId: c.id }); setShowChains(false); }}
-                      style={{
-                        display: "block", width: "100%", textAlign: "left",
-                        background: c.id === chainId ? "#161616" : "transparent",
-                        border: "none", padding: "7px 10px", borderRadius: 6,
-                        fontSize: 9, letterSpacing: 0.5,
-                        color: c.id === chainId ? tierColor : "#555",
-                      }}>
-                      {CHAIN_META[c.id]?.name ?? c.name}
-                      {CHAIN_META[c.id]?.testnet ? " (test)" : ""}
+                    <button key={c.id} onClick={() => { switchChain({ chainId: c.id }); setShowChains(false); }}
+                      style={{ color: c.id === chainId ? th.brand : th.chipText }}>
+                      {CHAIN_META[c.id]?.name ?? c.name}{CHAIN_META[c.id]?.testnet ? " (test)" : ""}
                     </button>
                   ))}
                 </div>
               )}
             </div>
           )}
-
-          {/* Wallet button */}
           {!isConnected ? (
             <div style={{ position: "relative" }}>
-              <button
-                onClick={() => { setShowWallets(v => !v); setShowChains(false); }}
-                style={{
-                  background: "#E8E8E808", border: "1px solid #E8E8E830",
-                  borderRadius: 8, color: "#E8E8E8",
-                  fontSize: 10, padding: "6px 14px", letterSpacing: 1,
-                }}>
+              <button className="chip" onClick={() => { setShowWallets(v => !v); setShowChains(false); }}>
                 Connect
               </button>
               {showWallets && (
-                <div className="dropdown" style={{
-                  position: "absolute", right: 0, top: "calc(100% + 6px)",
-                  background: "#0e0e0e", border: "1px solid #1e1e1e",
-                  borderRadius: 10, padding: 6, minWidth: 180, zIndex: 200,
-                }}>
+                <div className="dropdown">
                   {connectors.map(c => (
-                    <button key={c.id}
-                      onClick={() => { connect({ connector: c }); setShowWallets(false); }}
-                      style={{
-                        display: "block", width: "100%", textAlign: "left",
-                        background: "transparent", border: "none",
-                        padding: "8px 10px", borderRadius: 6,
-                        fontSize: 10, color: "#777", letterSpacing: 0.5,
-                      }}>
+                    <button key={c.id} onClick={() => { connect({ connector: c }); setShowWallets(false); }}>
                       {c.name}
                     </button>
                   ))}
@@ -269,13 +412,7 @@ export default function Page() {
               )}
             </div>
           ) : (
-            <button
-              onClick={() => disconnect()}
-              style={{
-                background: "transparent", border: "1px solid #181818",
-                borderRadius: 8, color: "#383838",
-                fontSize: 9, padding: "6px 12px", letterSpacing: 1,
-              }}>
+            <button className="chip" onClick={() => disconnect()}>
               {address?.slice(0, 6)}…{address?.slice(-4)}
             </button>
           )}
@@ -283,165 +420,106 @@ export default function Page() {
       </header>
 
       {/* ── Main ── */}
-      <main style={{ maxWidth: 700, margin: "0 auto", padding: "72px 1.25rem 4rem" }}>
+      <main className="main">
 
         {/* Hero */}
-        <div style={{ textAlign: "center", padding: "2.5rem 0 2rem" }}>
-          <h1 style={{
-            fontFamily: "'Syne',sans-serif", fontWeight: 800,
-            fontSize: "clamp(2rem, 7vw, 3.4rem)",
-            color: tierColor, letterSpacing: -1, lineHeight: 1.05,
-            transition: "color .6s",
-          }}>
-            Daily proof<br />of presence.
-          </h1>
-          <p style={{ marginTop: "0.9rem", fontSize: 11, color: "#383838", letterSpacing: 1.5 }}>
-            Check in once a day · Build your streak · Evolve your NFT
-          </p>
+        <div className="hero">
+          <p className="hero-eyebrow">Soul-bound on-chain NFT</p>
+          <h1 className="hero-title">Daily proof<br /><em>of presence.</em></h1>
+          <p className="hero-sub">Check in once a day · Build your streak · Evolve your NFT</p>
         </div>
 
         {/* Tier pills */}
-        <div className="tiers-grid" style={{
-          display: "grid", gridTemplateColumns: "repeat(4,1fr)",
-          gap: 8, marginBottom: "1.25rem",
-        }}>
+        <div className="tier-row">
           {TIERS.map(t => {
             const active = isMinted && t.id === tier;
-            const c = TIER_COLOR[t.id];
+            const gemColor = active ? th.pillGem : th.pillInactiveText + "55";
             return (
-              <div key={t.id} style={{
-                background: active ? c + "0e" : "#0a0a0a",
-                border: `1px solid ${active ? c + "44" : "#161616"}`,
-                borderRadius: 10, padding: "10px 8px", textAlign: "center",
-                transition: "all .5s",
-              }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: c, margin: "0 auto 6px" }} />
-                <p style={{
-                  fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 10,
-                  color: active ? c : "#2a2a2a",
-                }}>{t.label}</p>
-                <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, color: "#2a2a2a", marginTop: 2 }}>
-                  {t.range}
-                </p>
+              <div key={t.id} className={`tier-pill ${active ? "active" : "inactive"}`}>
+                <div className="tier-gem" style={{ background: gemColor }} />
+                {t.label}
+                <span style={{ fontSize: 10, opacity: 0.55, marginLeft: 3 }}>{t.range}</span>
               </div>
             );
           })}
         </div>
 
         {/* NFT card + stats */}
-        <div className="grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
-          <NftCard
-            isMinted={isMinted} tier={tier} tierColor={tierColor}
-            highestStreak={highestStreak} currentStreak={currentStreak}
-            totalActiveDays={totalActiveDays} tokenId={tokenId}
-          />
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <Stat label="Current Streak" value={isMinted ? `${currentStreak} days` : "—"} color={tierColor} />
-            <Stat label="Best Streak"    value={isMinted ? `${highestStreak} days` : "—"} color={tierColor} />
-            <Stat label="Total Active"   value={isMinted ? `${totalActiveDays} days` : "—"} color={tierColor} />
-            <Stat label="First Check-In" value={firstDate ?? "—"} color="#444" />
+        <div className="center-panel">
+          <div className="nft-frame">
+            <div className="nft-grain" />
+            <div className="nft-sheen" />
+            <div className="nft-sheen2" />
+            <span className="nft-corner tl">CSTRK</span>
+            <span className="nft-corner tr">{isMinted ? `#${tokenId}` : "—"}</span>
+            <span className="nft-corner br">ERC-721</span>
+            <div className="orbit-rings">
+              <div className="ring ring-outer" />
+              <div className="ring ring-inner" />
+              <div className="ring-spin" />
+              <div className="streak-center">
+                <span className="streak-number">{highestStreak}</span>
+                <span className="streak-label">best streak</span>
+              </div>
+            </div>
+            <span className="tier-name-badge">{TIER_NAME[tier]}</span>
+            <span className="nft-sub">
+              {isMinted ? `current ${currentStreak}d · total ${totalActiveDays}d` : "not minted yet"}
+            </span>
+          </div>
+
+          <div className="stats-col">
+            <div className="stat-card"><p className="stat-label">Current streak</p><p className="stat-value">{isMinted ? `${currentStreak} days` : "—"}</p></div>
+            <div className="stat-card"><p className="stat-label">Best streak</p><p className="stat-value">{isMinted ? `${highestStreak} days` : "—"}</p></div>
+            <div className="stat-card"><p className="stat-label">Total active</p><p className="stat-value">{isMinted ? `${totalActiveDays} days` : "—"}</p></div>
+            <div className="stat-card"><p className="stat-label">First check-in</p><p className="stat-value sm">{firstDate ?? "—"}</p></div>
           </div>
         </div>
 
-        {/* Action area */}
+        {/* Action */}
         {!isConnected ? (
-          <button
-            onClick={() => setShowWallets(true)}
-            style={{
-              width: "100%", padding: "1rem",
-              background: "#E8E8E808", border: "1px solid #E8E8E824",
-              borderRadius: 12, color: "#E8E8E8",
-              fontFamily: "'Syne',sans-serif", fontWeight: 700,
-              fontSize: 13, letterSpacing: 3,
-            }}>
-            Connect Wallet to Begin
+          <button className="checkin-btn ready" onClick={() => setShowWallets(true)}>
+            Connect wallet to begin
           </button>
-
         ) : !contractAddress ? (
-          <div style={{
-            width: "100%", padding: "1rem", textAlign: "center",
-            background: "#1a0d00", border: "1px solid #ff980033",
-            borderRadius: 12,
-          }}>
-            <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 10, color: "#ff9800", letterSpacing: 1 }}>
-              ⚠ No contract deployed on this network yet
-            </p>
-            <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: "#5a3a00", marginTop: 6 }}>
-              Switch to a supported chain using the dropdown above
-            </p>
+          <div className="no-contract">
+            <p style={{ color: "#ff9800", marginBottom: 6 }}>⚠ No contract on this network yet</p>
+            <p style={{ color: "#a06020" }}>Switch to a supported chain above</p>
           </div>
-
         ) : (
           <>
             <button
+              className={`checkin-btn ${btnDisabled ? "off" : "ready"}`}
               onClick={checkIn}
               disabled={btnDisabled}
-              style={{
-                width: "100%", padding: "1rem",
-                background: btnDisabled ? "#0a0a0a" : tierColor + "12",
-                border: `1px solid ${btnDisabled ? "#161616" : tierColor + "55"}`,
-                borderRadius: 12,
-                color: btnDisabled ? "#2a2a2a" : tierColor,
-                fontFamily: "'Syne',sans-serif", fontWeight: 700,
-                fontSize: 13, letterSpacing: 3, transition: "all .3s",
-              }}>
+            >
               {btnLabel()}
             </button>
 
-            {writeError && (
-              <p className="fadein" style={{
-                marginTop: 8, fontFamily: "'Space Mono',monospace",
-                fontSize: 9, color: "#c0392b", textAlign: "center",
-              }}>
-                {writeError.message.slice(0, 100)}
-              </p>
-            )}
-
-            {isConfirmed && (
-              <p className="fadein" style={{
-                marginTop: 8, fontFamily: "'Space Mono',monospace",
-                fontSize: 9, color: "#27ae60", textAlign: "center",
-              }}>
-                ✓ Check-in confirmed on chain
-              </p>
-            )}
-
-            {hasCheckedInToday && !isConfirmed && (
-              <p style={{
-                marginTop: 8, fontFamily: "'Space Mono',monospace",
-                fontSize: 9, color: "#2e2e2e", textAlign: "center", letterSpacing: 1,
-              }}>
-                Already checked in today. See you tomorrow.
-              </p>
-            )}
+            {writeError && <p className="error-text">{writeError.message.slice(0, 120)}</p>}
+            {isConfirmed && <p className="success-text">✓ Check-in confirmed on chain</p>}
 
             {/* Tier progress */}
             {isMinted && (
               <div style={{ marginTop: "1.5rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, color: "#282828", letterSpacing: 1 }}>
-                    TIER PROGRESS
-                  </span>
-                  <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, color: tierColor }}>
-                    {tier < 3 ? `${highestStreak} / ${TIER_THRESHOLD[tier + 1]} days to ${TIER_NAME[(tier + 1) as Tier]}` : "MAX TIER"}
+                <div className="prog-meta">
+                  <span style={{ color: th.pll }}>Tier progress</span>
+                  <span style={{ color: th.plr }}>
+                    {tier < 3
+                      ? `${highestStreak} / ${TIER_THRESHOLD[tier + 1]} days to ${NEXT_TIER_NAME}`
+                      : "Max tier reached"}
                   </span>
                 </div>
-                <div style={{ height: 2, background: "#111", borderRadius: 1, overflow: "hidden" }}>
-                  <div style={{
-                    height: "100%", background: tierColor,
-                    width: `${tierProgress}%`,
-                    transition: "width .7s ease, background .6s ease",
-                    borderRadius: 1,
-                  }} />
+                <div className="prog-track">
+                  <div className="prog-bar" style={{ width: `${tierProgress}%` }} />
                 </div>
               </div>
             )}
 
-            {/* Faucet link for testnets */}
             {faucetUrl && (
-              <p style={{ marginTop: "1rem", textAlign: "center", fontFamily: "'Space Mono',monospace", fontSize: 8, color: "#282828" }}>
+              <p className="faucet-text">
                 Need testnet gas?{" "}
-                <a href={faucetUrl} target="_blank" rel="noreferrer" style={{ color: "#3a3a3a", textDecoration: "underline" }}>
+                <a href={faucetUrl} target="_blank" rel="noreferrer">
                   {CHAIN_META[chainId]?.name} faucet ↗
                 </a>
               </p>
@@ -449,13 +527,11 @@ export default function Page() {
           </>
         )}
 
-        {/* Footer */}
-        <div style={{ marginTop: "4rem", borderTop: "1px solid #111", paddingTop: "1.5rem", textAlign: "center" }}>
-          <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 8, color: "#1e1e1e", letterSpacing: 1, lineHeight: 2 }}>
-            Soul-bound ERC-721 · On-chain SVG · No IPFS · EVM multi-chain<br />
-            Tier based on all-time highest streak — never decreases
-          </p>
-        </div>
+        <hr className="cs-divider" />
+        <p className="cs-footer">
+          Soul-bound ERC-721 · Fully on-chain SVG · No IPFS · EVM multi-chain<br />
+          Tier based on all-time highest streak — never decreases
+        </p>
       </main>
     </>
   );
