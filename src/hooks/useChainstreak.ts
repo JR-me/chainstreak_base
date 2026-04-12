@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  useAccount, useReadContract, useWriteContract,
+  useAccount, useReadContract, useReadContracts, useWriteContract,
   useWaitForTransactionReceipt, useChainId,
 } from "wagmi";
 import { useEffect } from "react";
@@ -26,12 +26,16 @@ export const TIER_NAME: Record<Tier, string> = {
 
 export const TIER_THRESHOLD = [0, 10, 50, 100];
 
+// How many recent days to fetch for the activity heatmap
+const HEATMAP_DAYS = 28;
+
 export function useChainstreak() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const contractAddress = getContractAddress(chainId) ?? undefined;
   const enabled = isConnected && !!address && !!contractAddress;
 
+  // ── Primary streak data ───────────────────────────────────────────────────
   const {
     data: streakData,
     isLoading: isStreakLoading,
@@ -52,6 +56,31 @@ export function useChainstreak() {
     query: { enabled },
   });
 
+  const { data: consistencyRaw } = useReadContract({
+    address: contractAddress,
+    abi: CHAINSTREAK_ABI,
+    functionName: "consistencyOf",
+    args: address ? [address] : undefined,
+    query: { enabled },
+  });
+
+  const { data: totalSupplyRaw } = useReadContract({
+    address: contractAddress,
+    abi: CHAINSTREAK_ABI,
+    functionName: "totalSupply",
+    query: { enabled: !!contractAddress },
+  });
+
+  // ── Recent activity for heatmap (28 days) ────────────────────────────────
+  const { data: recentActivityRaw, refetch: refetchActivity } = useReadContract({
+    address: contractAddress,
+    abi: CHAINSTREAK_ABI,
+    functionName: "recentActivity",
+    args: address ? [address, BigInt(HEATMAP_DAYS)] : undefined,
+    query: { enabled, refetchInterval: 60_000 },
+  });
+
+  // ── Write: checkIn ────────────────────────────────────────────────────────
   const {
     writeContract,
     data: txHash,
@@ -69,9 +98,11 @@ export function useChainstreak() {
   useEffect(() => {
     if (isConfirmed) {
       refetchStreak();
+      refetchActivity();
     }
-  }, [isConfirmed, refetchStreak]);
+  }, [isConfirmed, refetchStreak, refetchActivity]);
 
+  // ── Derived values ────────────────────────────────────────────────────────
   const tokenId         = streakData?.[0] ?? 0n;
   const firstCheckIn    = streakData?.[1] ?? 0;
   const lastCheckIn     = streakData?.[2] ?? 0;
@@ -79,11 +110,11 @@ export function useChainstreak() {
   const highestStreak   = Number(streakData?.[4] ?? 0);
   const totalActiveDays = Number(streakData?.[5] ?? 0);
   const tier            = (tierRaw ?? 0) as Tier;
+  const consistency     = Number(consistencyRaw ?? 0);
+  const totalSupply     = Number(totalSupplyRaw ?? 0);
   const isMinted        = tokenId > 0n;
 
   // Has the wallet already checked in today (UTC)?
-  // Date.now() is ms → divide by ms-per-day → multiply by s-per-day = UTC midnight in seconds.
-  // Matches the uint48 unix timestamp (seconds) stored by the contract.
   const todayUtcSeconds = Math.floor(Date.now() / 86_400_000) * 86_400;
   const hasCheckedInToday = Number(lastCheckIn) >= todayUtcSeconds;
 
@@ -100,6 +131,13 @@ export function useChainstreak() {
     ? 100
     : Math.min(100, Math.round(((highestStreak - prevThreshold) / (nextThreshold - prevThreshold)) * 100));
 
+  // Activity heatmap: array of 28 booleans, index 0 = today
+  // Falls back to all-false if data not yet loaded
+  const activityHeatmap: boolean[] = Array.from(
+    { length: HEATMAP_DAYS },
+    (_, i) => recentActivityRaw?.[i] ?? false
+  );
+
   function checkIn() {
     if (!contractAddress) return;
     writeContract({
@@ -115,6 +153,9 @@ export function useChainstreak() {
     tokenId, firstDate,
     currentStreak, highestStreak, totalActiveDays,
     tier, tierColor: TIER_COLOR[tier], tierName: TIER_NAME[tier], tierProgress,
+    consistency,
+    totalSupply,
+    activityHeatmap,
     isStreakLoading, isTxPending, isConfirming, isConfirmed,
     writeError, checkIn, refetchStreak, resetWrite,
   };
