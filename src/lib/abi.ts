@@ -1,4 +1,5 @@
 export const CHAINSTREAK_ABI = [
+  // ── Reads ──────────────────────────────────────────────────────────────────
   {
     name: "streakOf",
     type: "function",
@@ -28,12 +29,48 @@ export const CHAINSTREAK_ABI = [
     outputs: [{ name: "", type: "string" }],
   },
   {
+    name: "totalSupply",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "consistencyOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "wallet", type: "address" }],
+    outputs: [{ name: "", type: "uint8" }],
+  },
+  {
+    name: "activityWord",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "wallet",    type: "address" },
+      { name: "wordIndex", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    name: "recentActivity",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "wallet",  type: "address" },
+      { name: "numDays", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool[]" }],
+  },
+  // ── Writes ─────────────────────────────────────────────────────────────────
+  {
     name: "checkIn",
     type: "function",
     stateMutability: "nonpayable",
     inputs: [],
     outputs: [],
   },
+  // ── Events ─────────────────────────────────────────────────────────────────
   {
     name: "Minted",
     type: "event",
